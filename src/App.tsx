@@ -2,22 +2,51 @@ import { useState, useEffect } from "react";
 import { motion } from "framer-motion";
 import "./App.css";
 
-export default function App() {
-  const [open, setOpen] = useState(false);
-  const [activeWork, setActiveWork] = useState<string | null>(null);
+// Tipagem opcional para organização
+interface Trabalho {
+  id: string;
+  name: string;
+  images: string[];
+}
 
-  const trabalhos = [
-    { id: "portoes", name: "Portões", images: ["/portao1.jpg","/portao2.jpg","/portao3.jpg","/portao4.jpg"] },
+export default function App() {
+  // Estado do menu mobile
+  const [open, setOpen] = useState(false);
+  // Estado do modal de trabalhos
+  const [activeWork, setActiveWork] = useState<string | null>(null);
+  // Estado do zoom individual das imagens
+  const [zoomImg, setZoomImg] = useState<string | null>(null);
+
+  // Navegação dinâmica
+  const navLinks = [
+    { id: "inicio", label: "Início" },
+    { id: "sobre", label: "Sobre" },
+    { id: "trabalhos", label: "Trabalhos" },
+    { id: "depoimentos", label: "Depoimentos" },
+    { id: "contato", label: "Contato" },
+  ];
+
+  // Conteúdo dinâmico dos trabalhos (mantidos seus arquivos originais)
+  const trabalhos: Trabalho[] = [
+    { id: "portoes", name: "Portões", images: ["/portao1.jpg","/portao2.jpg","/portao3.jpg","/portao1.jpg"] },
     { id: "grades", name: "Grades", images: ["/grade1.jpg","/grade2.jpg","/grade3.jpg","/grade4.jpg"] },
     { id: "estruturas", name: "Estruturas Metálicas", images: ["/estrutura1.jpg","/estrutura2.jpg","/estrutura3.jpg","/estrutura4.jpg"] },
   ];
 
+  // Depoimentos dinâmicos
+  const depoimentos = [
+    { texto: "Serviço impecável, recomendo demais!", autor: "João Silva" },
+    { texto: "Atendimento rápido e portão de ótima qualidade.", autor: "Maria Oliveira" },
+    { texto: "Minha empresa ficou muito mais segura, obrigado CGN.", autor: "Pedro Santos" },
+  ];
+
+  // Intersection Observer para animações de entrada das sections
   useEffect(() => {
     const sections = document.querySelectorAll("section");
     const observer = new IntersectionObserver(
       entries => {
         entries.forEach(entry => {
-          if(entry.isIntersecting) entry.target.classList.add("in-view");
+          if (entry.isIntersecting) entry.target.classList.add("in-view");
         });
       },
       { threshold: 0.2 }
@@ -25,6 +54,19 @@ export default function App() {
     sections.forEach(section => observer.observe(section));
     return () => observer.disconnect();
   }, []);
+
+  // Fechar modal/zoom com tecla ESC
+  useEffect(() => {
+    const onKeyDown = (e: KeyboardEvent) => {
+      if (e.key === "Escape") {
+        if (zoomImg) setZoomImg(null);
+        else if (activeWork) setActiveWork(null);
+        else if (open) setOpen(false);
+      }
+    };
+    window.addEventListener("keydown", onKeyDown);
+    return () => window.removeEventListener("keydown", onKeyDown);
+  }, [zoomImg, activeWork, open]);
 
   return (
     <>
@@ -35,13 +77,13 @@ export default function App() {
           <img src="/cgn.png" alt="C.G.N" className="cgn-title" />
         </div>
         <nav className={`nav ${open ? "open" : ""}`}>
-          <a href="#inicio">Início</a>
-          <a href="#sobre">Sobre</a>
-          <a href="#trabalhos">Trabalhos</a>
-          <a href="#depoimentos">Depoimentos</a>
-          <a href="#contato">Contato</a>
+          {navLinks.map(link => (
+            <a key={link.id} href={`#${link.id}`} onClick={() => setOpen(false)}>
+              {link.label}
+            </a>
+          ))}
         </nav>
-        <div className={`hamburger ${open ? "open" : ""}`} onClick={() => setOpen(!open)}>
+        <div className={`hamburger ${open ? "open" : ""}`} onClick={() => setOpen(!open)} aria-label="Abrir/Fechar menu" role="button" tabIndex={0}>
           <span></span>
           <span></span>
           <span></span>
@@ -88,14 +130,15 @@ export default function App() {
           ))}
         </div>
 
+        {/* Modal de trabalhos com clique fora para fechar */}
         {activeWork && (
-          <div className="modal">
-            <div className="modal-content">
-              <button className="close" onClick={() => setActiveWork(null)}>✕</button>
+          <div className="modal" onClick={() => setActiveWork(null)}>
+            <div className="modal-content" onClick={(e) => e.stopPropagation()}>
+              <button className="close" onClick={() => setActiveWork(null)} aria-label="Fechar">✕</button>
               <h3>{trabalhos.find(t => t.id === activeWork)?.name}</h3>
               <div className="modal-images">
                 {trabalhos.find(t => t.id === activeWork)?.images.map((img, i) => (
-                  <img key={i} src={img} alt={`${activeWork}-${i}`} />
+                  <img key={i} src={img} alt={`${activeWork}-${i}`} onClick={() => setZoomImg(img)} />
                 ))}
               </div>
             </div>
@@ -103,29 +146,30 @@ export default function App() {
         )}
       </section>
 
+      {/* ZOOM MODAL - clique fora fecha, clique na imagem não propaga */}
+      {zoomImg && (
+        <div className="zoom-overlay" onClick={() => setZoomImg(null)}>
+          <img src={zoomImg} alt="Imagem ampliada" className="zoomed-img" onClick={(e) => e.stopPropagation()} />
+        </div>
+      )}
+
       {/* DEPOIMENTOS */}
       <section id="depoimentos" className="depoimentos">
         <motion.h2 initial={{ opacity: 0, y: -20 }} animate={{ opacity: 1, y: 0 }} className="titulo-secao">O que nossos clientes dizem</motion.h2>
         <div className="depoimentos-lista">
-          <blockquote>
-            <p>“Serviço impecável, recomendo demais!”</p>
-            <span>- João Silva</span>
-          </blockquote>
-          <blockquote>
-            <p>“Atendimento rápido e portão de ótima qualidade.”</p>
-            <span>- Maria Oliveira</span>
-          </blockquote>
-          <blockquote>
-            <p>“Minha empresa ficou muito mais segura, obrigado CGN.”</p>
-            <span>- Pedro Santos</span>
-          </blockquote>
+          {depoimentos.map((d, idx) => (
+            <blockquote key={idx}>
+              <p>“{d.texto}”</p>
+              <span>- {d.autor}</span>
+            </blockquote>
+          ))}
         </div>
       </section>
 
       {/* CONTATO */}
       <section id="contato" className="contato">
         <motion.h2 initial={{ opacity: 0, y: -20 }} animate={{ opacity: 1, y: 0 }} className="titulo-secao">Contato</motion.h2>
-        <form className="form-contato">
+        <form className="form-contato" onSubmit={(e) => e.preventDefault()}>
           <input type="text" placeholder="Nome" required />
           <input type="email" placeholder="E-mail" required />
           <input type="text" placeholder="WhatsApp" required />
@@ -137,17 +181,17 @@ export default function App() {
       {/* FOOTER */}
       <footer>
         <div className="socials">
-          <a href="#"><i className="fab fa-instagram"></i></a>
-          <a href="#"><i className="fab fa-pinterest"></i></a>
+          <a href="#" aria-label="Instagram"><i className="fab fa-instagram"></i></a>
+          <a href="#" aria-label="Pinterest"><i className="fab fa-pinterest"></i></a>
         </div>
-        <p>© 2025 C.G.N Construções - Todos os direitos reservados</p>
+        <p>© {new Date().getFullYear()} C.G.N Construções - Todos os direitos reservados</p>
       </footer>
 
       {/* BOTÃO VOLTAR */}
-      <button className="btn-top" onClick={() => window.scrollTo({ top: 0, behavior: "smooth" })}>↑</button>
+      <button className="btn-top" onClick={() => window.scrollTo({ top: 0, behavior: "smooth" })} aria-label="Voltar ao topo">↑</button>
 
       {/* FUNDO DINÂMICO */}
-      <div className="fundo-dinamico"></div>
+      <div className="fundo-dinamico" aria-hidden="true"></div>
     </>
   );
 }

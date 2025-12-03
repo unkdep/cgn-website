@@ -4,7 +4,6 @@ import { motion } from "framer-motion";
 import { MapPin, Phone, Mail, Key, Building2 } from "lucide-react";
 import "./App.css";
 
-// Tipagens
 interface Trabalho {
   id: string;
   name: string;
@@ -16,7 +15,6 @@ interface Telefone {
   numero: string;
 }
 
-// DADOS DA EMPRESA
 const empresaDados = {
   nome: "CGN Construções LTDA",
   endereco:
@@ -40,7 +38,6 @@ const servicosExpandidos = [
   "Alvenaria Comercial",
 ];
 
-// helper para criar arrays de caminhos de imagem sequenciais
 const rangeImages = (base: string, count: number): string[] =>
   Array.from({ length: count }, (_, i) => `/${base}${i + 1}.jpg`);
 
@@ -169,7 +166,6 @@ export default function App() {
     setEstruturaVisibleCount(8);
   };
 
-  // resetar contagem quando fechar modal ou trocar de trabalho
   useEffect(() => {
     if (!activeWork || activeWork !== "estruturas") {
       setEstruturaVisibleCount(8);
@@ -186,11 +182,7 @@ export default function App() {
         </div>
         <nav className={`nav ${open ? "open" : ""}`}>
           {navLinks.map((link) => (
-            <a
-              key={link.id}
-              href={`#${link.id}`}
-              onClick={() => setOpen(false)}
-            >
+            <a key={link.id} href={`#${link.id}`} onClick={() => setOpen(false)}>
               {link.label}
             </a>
           ))}
@@ -248,8 +240,7 @@ export default function App() {
           </p>
           <p>
             Especializados em portões, grades e estruturas metálicas, atendemos
-            residências e comércios garantindo durabilidade, design e
-            segurança.
+            residências e comércios garantindo durabilidade, design e segurança.
           </p>
           <p className="servicos-sobre">
             <strong>Serviços:</strong> {servicosExpandidos.join(" • ")}
@@ -285,9 +276,9 @@ export default function App() {
         </div>
 
         {activeWork && currentWork && (
-          <div className="modal">
-            {/* sem onClick aqui, só fecha pelo botão ✕ */}
+          <div className="modal" onClick={() => setActiveWork(null)}>
             <div className="modal-content" onClick={handleModalContentClick}>
+              {/* SOMENTE BOTÃO X - SEM TÍTULO NENHUM */}
               <button
                 className="close"
                 onClick={() => setActiveWork(null)}
@@ -295,8 +286,8 @@ export default function App() {
               >
                 ✕
               </button>
-              <h3>{currentWork.name}</h3>
 
+              {/* IMAGENS DIRETO - SEM TÍTULO SOBREPONDO */}
               <div className="modal-images">
                 {isEstruturaActive
                   ? estruturaShowing.map((img, i) => (
@@ -370,7 +361,7 @@ export default function App() {
         <div className="depoimentos-lista">
           {depoimentos.map((d, idx) => (
             <blockquote key={idx}>
-              <p>“{d.texto}”</p>
+              <p>{`"${d.texto}"`}</p>
               <span>- {d.autor}</span>
             </blockquote>
           ))}
@@ -388,7 +379,6 @@ export default function App() {
         </motion.h2>
 
         <div className="empresa-grid">
-          {/* Telefone */}
           <motion.div
             className="empresa-card telefone"
             initial={{ opacity: 0, x: -40 }}
@@ -410,7 +400,6 @@ export default function App() {
             </div>
           </motion.div>
 
-          {/* Endereço */}
           <motion.div
             className="empresa-card endereco"
             initial={{ opacity: 0, y: -40 }}
@@ -422,7 +411,6 @@ export default function App() {
             <p>{empresaDados.endereco}</p>
           </motion.div>
 
-          {/* E-mail */}
           <motion.div
             className="empresa-card email"
             initial={{ opacity: 0, x: 40 }}
@@ -436,7 +424,6 @@ export default function App() {
             </a>
           </motion.div>
 
-          {/* PIX */}
           <motion.div
             className="empresa-card pix"
             initial={{ opacity: 0, y: 40 }}
@@ -448,7 +435,6 @@ export default function App() {
             <p>{empresaDados.pix}</p>
           </motion.div>
 
-          {/* Dados da empresa */}
           <motion.div
             className="empresa-card docs"
             initial={{ opacity: 0, y: 40 }}
@@ -503,7 +489,7 @@ export default function App() {
         ↑
       </button>
 
-      {/* FUNDO DINÂMICO (se tiver no CSS) */}
+      {/* FUNDO DINÂMICO */}
       <div className="fundo-dinamico" aria-hidden="true"></div>
     </>
   );
